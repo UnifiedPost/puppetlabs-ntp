@@ -1,43 +1,44 @@
-# Class: ntp
+# == Class: ntp
 #
-#   This module manages the ntp service.
+# This module manages the ntp service.
 #
-#   Jeff McCune <jeff@puppetlabs.com>
-#   2011-02-23
+# Tested platforms:
+#  - Debian 6.0 Squeeze
+#  - CentOS 5.4
+#  - Amazon Linux 2011.09
+#  - FreeBSD 9.0
+#  - Archlinux
 #
-#   Tested platforms:
-#    - Debian 6.0 Squeeze
-#    - CentOS 5.4
-#    - Amazon Linux 2011.09
-#    - FreeBSD 9.0
-#    - Archlinux
+# === Parameters:
 #
-# Parameters:
+# [*ensure*]
+#   Controll the service. Defaults to running.
 #
-#   $servers = [ '0.debian.pool.ntp.org iburst',
-#                '1.debian.pool.ntp.org iburst',
-#                '2.debian.pool.ntp.org iburst',
-#                '3.debian.pool.ntp.org iburst', ]
+# [*servers*]
+#   Array of ntp servers to use.
+#   Defaults to OS specific.
 #
-#   $restrict = true
-#     Whether to restrict ntp daemons from allowing others to use as a server.
+# [*restrict*]
+#   Whether to restrict ntp daemons from allowing others to use as a server.
+#   Defaults to true.
 #
-#   $autoupdate = false
-#     Whether to update the ntp package automatically or not.
+# [*autoupdate*]
+#   Whether to update the ntp package automatically or not.
+#   Defaults to false.
 #
-#   $enable = true
-#     Automatically start ntp deamon on boot.
+# [*enable*]
+#   Automatically start ntp deamon on boot.
+#   Defaults to true.
 #
-#   $template = '${module_name}/${config_tpl}'
-#     Override with your own explicit template.
+# [*config_template*]
+#   Override with your own explicit template.
+#   Defaults to OS specific.
 #
-# Actions:
+# === Actions:
 #
 #  Installs, configures, and manages the ntp service.
 #
-# Requires:
-#
-# Sample Usage:
+# === Sample Usage:
 #
 #   class { "ntp":
 #     servers    => [ 'time.apple.com' ],
