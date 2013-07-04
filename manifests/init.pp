@@ -45,117 +45,43 @@
 #     autoupdate => false,
 #   }
 #
-# [Remember: No empty lines between comments and class definition]
-class ntp($servers='UNSET',
-          $ensure='running',
-          $enable=true,
-          $restrict=true,
-          $config_template=undef,
-          $autoupdate=false
+class ntp(
+  $servers         = 'UNSET',
+  $ensure          = 'running',
+  $enable          = true,
+  $restrict        = true,
+  $config_template = undef,
+  $autoupdate      = false
 ) {
+
+  require ntp::params
+  $pkg_name = $::ntp::params::pkg_name
+  $svc_name = $::ntp::params::svc_name
+  $config   = $::ntp::params::config
+  $config_tpl = $::ntp::params::config_tpl
+  $default_servers = $::ntp::params::default_servers
+
 
   if ! ($ensure in [ 'running', 'stopped' ]) {
     fail('ensure parameter must be running or stopped')
   }
 
   if $autoupdate == true {
-    $package_ensure = latest
+    $package_ensure = 'latest'
   } elsif $autoupdate == false {
-    $package_ensure = present
+    $package_ensure = 'present'
   } else {
     fail('autoupdate parameter must be true or false')
   }
 
-  case $::osfamily {
-    Debian: {
-      $supported  = true
-      $pkg_name   = [ 'ntp' ]
-      $svc_name   = 'ntp'
-      $config     = '/etc/ntp.conf'
-      $config_tpl = 'ntp.conf.debian.erb'
-      if ($servers == 'UNSET') {
-        $servers_real = [ '0.debian.pool.ntp.org iburst',
-                          '1.debian.pool.ntp.org iburst',
-                          '2.debian.pool.ntp.org iburst',
-                          '3.debian.pool.ntp.org iburst', ]
-      } else {
-        $servers_real = $servers
-      }
-    }
-    RedHat: {
-      $supported  = true
-      $pkg_name   = [ 'ntp' ]
-      $svc_name   = 'ntpd'
-      $config     = '/etc/ntp.conf'
-      $config_tpl = 'ntp.conf.el.erb'
-      if ($servers == 'UNSET') {
-        $servers_real = [ '0.centos.pool.ntp.org',
-                          '1.centos.pool.ntp.org',
-                          '2.centos.pool.ntp.org', ]
-      } else {
-        $servers_real = $servers
-      }
-    }
-    SuSE: {
-      $supported  = true
-      $pkg_name   = [ 'ntp' ]
-      $svc_name   = 'ntp'
-      $config     = '/etc/ntp.conf'
-      $config_tpl = 'ntp.conf.suse.erb'
-      if ($servers == 'UNSET') {
-        $servers_real = [ '0.opensuse.pool.ntp.org',
-                          '1.opensuse.pool.ntp.org',
-                          '2.opensuse.pool.ntp.org',
-                          '3.opensuse.pool.ntp.org', ]
-      } else {
-        $servers_real = $servers
-      }
-    }
-    FreeBSD: {
-      $supported  = true
-      $pkg_name   = ['net/ntp']
-      $svc_name   = 'ntpd'
-      $config     = '/etc/ntp.conf'
-      $config_tpl = 'ntp.conf.freebsd.erb'
-      if ($servers == 'UNSET') {
-        $servers_real = [ '0.freebsd.pool.ntp.org iburst maxpoll 9',
-                          '1.freebsd.pool.ntp.org iburst maxpoll 9',
-                          '2.freebsd.pool.ntp.org iburst maxpoll 9',
-                          '3.freebsd.pool.ntp.org iburst maxpoll 9', ]
-      } else {
-        $servers_real = $servers
-      }
-    }
-
-    Linux: {
-      if ($::operatingsystem == 'Archlinux') {
-        $supported = true
-        $pkg_name = ['ntp']
-        $svc_name = 'ntpd'
-        $config = '/etc/ntp.conf'
-        $config_tpl = 'ntp.conf.archlinux.erb'
-
-        if ($servers == 'UNSET') {
-          $servers_real = [ '0.pool.ntp.org',
-                            '1.pool.ntp.org',
-                            '2.pool.ntp.org' ]
-        } else {
-          $servers_real = $servers
-        }
-      } else {
-        fail("The ${module_name} module is not supported on an ${::operatingsystem} system")
-      }
-    }
-
-    default: {
-      fail("The ${module_name} module is not supported on ${::osfamily} based systems")
-    }
+  $template_real = $config_template ? {
+    undef   => "${module_name}/${config_tpl}",
+    default => $config_template,
   }
 
-  if ($config_template == undef) {
-    $template_real = "${module_name}/${config_tpl}"
-  } else {
-    $template_real = $config_template
+  $servers_real = $servers ? {
+    'UNSET' => $default_servers,
+    default => $servers,
   }
 
   package { 'ntp':
